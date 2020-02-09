@@ -1,0 +1,47 @@
+/* start general */
+body {
+  font-family: "Roboto", sans-serif;
+}
+/* end general */
+/* start nav */
+nav {
+  height: 80px;
+  border-top: 3px solid #ff9900;
+}
+nav img {
+  height: 25px;
+}
+nav h1 {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+nav h1 span {
+  color: #ff9900;
+}
+/* end nav */
+/* start hero */
+.hero {
+  background: linear-gradient(to top, #1344a4, #011054);
+  min-height: 80vh;
+}
+.hero img {
+  height: 60vh;
+  width: auto;
+  margin-top: 10vh;
+}
+.hero h2 {
+  color: #fff;
+  text-transform: uppercase;
+  font-size: 35px;
+  letter-spacing: 1.5px;
+  width: 90%;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.hero h2 span {
+  color: #ff9900;
+  margin-right: 10px;
+}
+/* end hero */
