@@ -1,0 +1,54 @@
+[
+  {
+    "ParameterKey": "RestApiName",
+    "ParameterValue": "MyRestApi"
+  },
+  {
+    "ParameterKey": "StageName",
+    "ParameterValue": "v0"
+  },
+  {
+    "ParameterKey": "VpcLinkName",
+    "ParameterValue": "MyVpcLink"
+  },
+  {
+    "ParameterKey": "VpcName",
+    "ParameterValue": "MyVPC"
+  },
+  {
+    "ParameterKey": "VpcCIDR",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "PublicSubnet1CIDR",
+    "ParameterValue": "10.0.0.0/24"
+  },
+  {
+    "ParameterKey": "PublicSubnet2CIDR",
+    "ParameterValue": "10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "PrivateSubnet1CIDR",
+    "ParameterValue": "10.0.2.0/24"
+  },
+  {
+    "ParameterKey": "PrivateSubnet2CIDR",
+    "ParameterValue": "10.0.3.0/24"
+  },
+  {
+    "ParameterKey": "DBSecurityGroupName",
+    "ParameterValue": "MyDBSecurityGroup"
+  },
+  {
+    "ParameterKey": "DBSubnetGroupName",
+    "ParameterValue": "MyDBSubnetGroup"
+  },
+  {
+    "ParameterKey": "DBUsername",
+    "ParameterValue": "sabbir333"
+  },
+  {
+    "ParameterKey": "DBPassword",
+    "ParameterValue": "sabbir123456"
+  }
+]

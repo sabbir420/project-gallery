@@ -1,0 +1,1 @@
+aws cloudformation create-stack --stack-name myteststack --template-body file://apitemplate.yml --parameters file://apiparams.json --capabilities CAPABILITY_IAM
