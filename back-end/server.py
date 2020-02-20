@@ -1,8 +1,7 @@
 from flask import Flask
 from flask_restful import Resource,Api, reqparse
 
-
-#import apis
+import apis
 
 
 
@@ -14,15 +13,17 @@ api = Api(app)
 
 class HomePage(Resource):
     def get(self):
-        #parser = reqparse.RequestParser()
 
-        #output = apis.home()
         return {"status":"success"}
 
+class GetBlogs(Resource):
+    def get(self):
+        output = apis.getBlogs()
+        return output
 
 
-
-api.add_resource(HomePage,'/home')
+api.add_resource(HomePage,'/')
+api.add_resource(GetBlogs,'/blogs')
 
 
 if __name__ == '__main__':
