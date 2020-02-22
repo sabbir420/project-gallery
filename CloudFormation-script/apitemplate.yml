@@ -120,20 +120,24 @@ Resources:
     Properties:
       ApiKeyRequired: false
       AuthorizationType: NONE
-      RequestParameters:
-        method.request.path.proxy: true
-      HttpMethod: ANY
+      #RequestParameters:
+      #  method.request.path.proxy: true
+      HttpMethod: POST
       Integration:
-        ConnectionId: !Sub ${VpcLink1}
-        ConnectionType: VPC_LINK
+        #ConnectionId: !Sub ${VpcLink1}
+        #ConnectionType: INTERNET
         Credentials: !GetAtt ApiGatewayIamRole.Arn
-        IntegrationHttpMethod: ANY
-        RequestParameters:
-          integration.request.path.proxy: "method.request.path.proxy"
+        IntegrationHttpMethod: POST
+        #RequestParameters:
+         # integration.request.path.proxy: "method.request.path.proxy"
         PassthroughBehavior: WHEN_NO_MATCH
         TimeoutInMillis: 29000
-        Type: HTTP_PROXY
-        Uri: "http://petstore-demo-endpoint.execute-api.com/{proxy}"
+        Type: AWS_PROXY
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+          - lambdaArn: !GetAtt "LambdaFunction.Arn"
+        IntegrationResponses:
+            - StatusCode: 200
       OperationName: "lambda"
       ResourceId: !Ref ApiGatewayResource
       RestApiId: !Ref ApiGatewayRestApi
@@ -206,6 +210,14 @@ Resources:
       Environment:
         Variables:
           SECRETS_MANAGER_ENDPOINT: !Sub 'https://secretsmanager.${AWS::Region}.amazonaws.com'
+
+  LambdaApiGatewayInvoke:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt "LambdaFunction.Arn"
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*"
 
   LambdaIamRole:
     Type: AWS::IAM::Role
@@ -537,3 +549,35 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable2
       SubnetId: !Ref PrivateSubnet2
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: bucket-project-gallery
+
+  BucketPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: 
+        Ref: "S3Bucket"
+      PolicyDocument: 
+        Statement: 
+          - 
+            Action: 
+              - "s3:GetObject"
+            Effect: "Allow"
+            Resource: 
+              Fn::Join: 
+                - ""
+                - 
+                  - "arn:aws:s3:::"
+                  - 
+                    Ref: "S3Bucket"
+                  - "/*"
+            Principal: "*"
+            Condition: 
+              StringLike: 
+                aws:Referer: 
+                  - "http://www.example.com/*"
+                  - "http://example.com/*"  
