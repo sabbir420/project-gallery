@@ -203,6 +203,9 @@ Resources:
       Role: !GetAtt LambdaIamRole.Arn
       Runtime: python3.7
       Timeout: 60
+      Environment:
+        Variables:
+          SECRETS_MANAGER_ENDPOINT: !Sub 'https://secretsmanager.${AWS::Region}.amazonaws.com'
 
   LambdaIamRole:
     Type: AWS::IAM::Role
@@ -224,6 +227,24 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "rds:*"
+                Resource: "*"
+              -
+                Effect: "Allow"
+                Action:
+                  - "secretsmanager:DescribeSecret"
+                  - "secretsmanager:GetSecretValue"
+                  - "secretsmanager:PutSecretValue"
+                  - "secretsmanager:UpdateSecretVersionStage"
+                Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*'
+                Condition:
+                  StringEquals:
+                    secretsmanager:resource/AllowRotationLambdaArn: !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cfn-rotation-lambda'
+              -
+                Effect: "Allow"
+                Action:
+                  - "kms:Decrypt"
+                  - "kms:DescribeKey"
+                  - "kms:GenerateDataKey"
                 Resource: "*"
 
   InstanceSecurityGroup:
@@ -267,13 +288,65 @@ Resources:
       AllocatedStorage: !Ref DBAllocatedStorage
       Engine: MySQL
       EngineVersion: 8.0.16
-      MasterUsername: !Ref DBUsername
-      MasterUserPassword: !Ref DBPassword
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref RDSInstanceRotationSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref RDSInstanceRotationSecret, ':SecretString:password}}' ]]
+      BackupRetentionPeriod: 0
+      DBInstanceIdentifier: 'rotation-instance'
       MultiAZ: true
       PubliclyAccessible: "false"
       StorageEncrypted: "false"
       VPCSecurityGroups:
         - Ref: InstanceSecurityGroup
+
+  RDSInstanceRotationSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: 'This is my rds instance secret'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+      Tags:
+        - Key: Name
+          Value: !Sub ${RestApiName} Secret Manager
+
+  SecretRDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref RDSInstanceRotationSecret
+      TargetId: !Ref DBInstance
+      TargetType: AWS::RDS::DBInstance
+
+  SecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn: SecretRDSInstanceAttachment
+    Properties:
+      SecretId: !Ref RDSInstanceRotationSecret
+      RotationLambdaARN: !GetAtt LambdaFunction.Arn
+      RotationRules:
+        AutomaticallyAfterDays: 30
+
+  SecretResourcePolicy:
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      SecretId: !Ref RDSInstanceRotationSecret
+      ResourcePolicy: 
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Deny
+            Principal: 
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: secretsmanager:DeleteSecret
+            Resource: "*"
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: LambdaFunction
+    Properties:
+      FunctionName: 'lambda-function'
+      Action: 'lambda:InvokeFunction'
+      Principal: secretsmanager.amazonaws.com
 
   VPC:
     Type: AWS::EC2::VPC

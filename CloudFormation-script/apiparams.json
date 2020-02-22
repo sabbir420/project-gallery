@@ -45,10 +45,10 @@
   },
   {
     "ParameterKey": "DBUsername",
-    "ParameterValue": "sabbir333"
+    "ParameterValue": "admin"
   },
   {
     "ParameterKey": "DBPassword",
-    "ParameterValue": "sabbir123456"
+    "ParameterValue": "password"
   }
 ]
