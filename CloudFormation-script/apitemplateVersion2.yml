@@ -136,7 +136,7 @@ Resources:
           method.response.header.Access-Control-Allow-Origin: true 
       Integration:
         # ConnectionId: !Sub ${VpcLink1}
-        #ConnectionType: INTERNET
+        ConnectionType: INTERNET
         # Credentials: !GetAtt ApiGatewayIamRole.Arn
         IntegrationHttpMethod: POST
         IntegrationResponses:
