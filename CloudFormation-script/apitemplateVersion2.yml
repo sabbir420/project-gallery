@@ -118,6 +118,7 @@ Resources:
       RestApiId: !Ref ApiGatewayRestApi
 
   ApiGatewayMethod:
+    DependsOn: LambdaInvokePermission
     Type: AWS::ApiGateway::Method
     Properties:
       ApiKeyRequired: false
@@ -127,16 +128,23 @@ Resources:
       HttpMethod: POST
       MethodResponses:
       - StatusCode: 200
-        ResponseModels:
-          text/html: Empty
         ResponseParameters:
-          method.response.header.Content-Type: true
-          method.response.header.Content-Length: true  
+          #method.response.header.Content-Type: true
+          #method.response.header.Content-Length: true  
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true 
       Integration:
         # ConnectionId: !Sub ${VpcLink1}
-        ConnectionType: INTERNET
+        #ConnectionType: INTERNET
         # Credentials: !GetAtt ApiGatewayIamRole.Arn
         IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - ResponseParameters:
+                method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+                method.response.header.Access-Control-Allow-Origin: "'*'"
+            StatusCode: '200'
         # RequestParameters:
         #   integration.request.path.proxy: "method.request.path.proxy"
         # PassthroughBehavior: WHEN_NO_MATCH
@@ -155,6 +163,7 @@ Resources:
       Schema: {}
 
   ApiGatewayStage:
+    DependsOn: ApiGwAccountConfig
     Type: AWS::ApiGateway::Stage
     Properties:
       DeploymentId: !Ref ApiGatewayDeployment
@@ -168,6 +177,41 @@ Resources:
       Description: Lambda API Deployment
       RestApiId: !Ref ApiGatewayRestApi
 
+  ApiGwAccountConfig:
+    Type: "AWS::ApiGateway::Account"
+    Properties:
+      CloudWatchRoleArn: !GetAtt "ApiGatewayLoggingRole.Arn"
+
+  ApiGatewayLoggingRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: ApiGatewayLogsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:DescribeLogGroups'
+                  - 'logs:DescribeLogStreams'
+                  - 'logs:PutLogEvents'
+                  - 'logs:GetLogEvents'
+                  - 'logs:FilterLogEvents'
+                Resource: '*'
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+
   ApiGatewayIamRole:
     Type: AWS::IAM::Role
     Properties:
@@ -178,7 +222,7 @@ Resources:
             Effect: "Allow"
             Principal:
               Service:
-                - "lambda.amazonaws.com"
+                - "apigateway.amazonaws.com"
             Action:
               - "sts:AssumeRole"
       Path: "/"
@@ -189,6 +233,10 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "lambda:*"
+                Resource: "*"
+
+              - Effect: "Allow"
+                Action: "lambda:InvokeFunction"
                 Resource: "*"
 
         - PolicyName: "AllowS3"
@@ -203,7 +251,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: "blogs-images"
+        S3Bucket: "blogs-images1"
         S3Key: "lambda_upload_s3.zip"
       Description: AWS Lambda function
       FunctionName: "lambda-function"
