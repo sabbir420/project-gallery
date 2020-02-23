@@ -6,8 +6,8 @@ export default function Hero() {
       <div className="container d-flex justify-content-between align-items-center">
         <div className="rt">
           <h2>
-            <span>AWS</span>
-            Tutorials and more.
+            <span>What</span>
+            is Cloud Computing?
           </h2>
         </div>
         <div className="lt">

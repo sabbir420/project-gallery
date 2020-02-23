@@ -49,9 +49,9 @@ nav h1 span {
 /* end hero */
 /* Start Blogs */
 .blogs {
-  padding: 50px 0;
+  padding: 0;
 }
-.blogs h3 {
+.blogs .headerH {
   position: relative;
   display: inline-block;
   padding-bottom: 10px;
@@ -59,7 +59,7 @@ nav h1 span {
   display: block;
   text-transform: uppercase;
 }
-.blogs h3:before {
+.blogs .headerH:before {
   content: "";
   position: absolute;
   bottom: 0;
@@ -75,6 +75,7 @@ nav h1 span {
   text-align: center;
   justify-content: center;
 }
+
 .blogs li {
   list-style: none;
   display: inline;
@@ -90,6 +91,12 @@ nav h1 span {
 .card {
   margin-top: 30px;
 }
+.card h2 {
+  font-size: 24px !important;
+}
+.card h3 {
+  font-size: 17px;
+}
 /* end Blogs */
 /* start footer */
 footer {
@@ -100,6 +107,14 @@ footer {
   background-color: #011054;
   margin-top: 50px;
   border-top: 3px solid #ff9900;
+}
+.list {
+  display: block !important;
+  list-style: disc !important;
+}
+.list li {
+  text-align: left !important;
+  margin: 0;
 }
 /* end footer */
 /* responsive */
